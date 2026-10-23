@@ -258,10 +258,10 @@ print ("input_shape: ", input_shape)
 print("Using device:", device)
 
 batch_size = 16
-latent_dim = 32
-kernel_sizes=(5, 5, 5, 5, 5)
-strides=((2,2), (2,2), (2,2), (1,1), (1,1))
-channels=(32, 64, 128, 256, 256)
+latent_dim = 8
+kernel_sizes=(5, 5, 5, 5, 5, 5)
+strides=((2,2), (2,2), (2,2), (1,1), (1,1),(1,1))
+channels=(16, 32, 64, 128, 256, 256)
 
 #model = GenerativeVAE(input_shape=input_shape, latent_dim = 8,device=device)
 

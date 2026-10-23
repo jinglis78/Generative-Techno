@@ -11,6 +11,7 @@ class GenerativeVAE(nn.Module):
         self.input_shape = input_shape
         self.latent_dim = latent_dim
         self.device = device
+        self.sigma = torch.load("sigma_vae3.pt").to(device)
 
         self.encoder_stem =  nn.Sequential(
 
@@ -61,7 +62,10 @@ class GenerativeVAE(nn.Module):
 
     # point in latent space -> reconstructed image
     def decode(self, latent_point):
-        return self.decoder(latent_point)
+        decoded = self.decoder(latent_point)
+        noise = torch.randn_like(decoded)
+        decoded = (decoded + 0.7 * self.sigma * noise).clamp(0, 1)
+        return decoded 
 
     # input image -> reconstructed image
     def forward(self, x):

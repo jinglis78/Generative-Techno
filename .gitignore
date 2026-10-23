@@ -4,6 +4,7 @@ __pycache__/
 
 # Model checkpoints and weights
 *.pth
+*.pt
 *.txt
 
 # Generated audio and spectrograms

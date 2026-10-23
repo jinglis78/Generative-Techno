@@ -9,37 +9,39 @@ class VAEBaseClass:
         self.data_processor = data_processor
         self.optimizer = optimizer
         self.device = device
-        self.beta = 0.01
+        self.beta = 0
 
     def loss_function(self, x, recon_x, mean, logvar):
-        recon_loss = F.l1_loss(recon_x, x, reduction="mean")
-
-        kl_per_sample = -0.5 * torch.sum(1 + logvar - mean.pow(2) - logvar.exp(), dim=1)
-        kl_loss = kl_per_sample.mean()
-
-        # Frequency differences
-        recon_f = recon_x[:, :, 1:, :] - recon_x[:, :, :-1, :]
-        target_f = x[:, :, 1:, :] - x[:, :, :-1, :]
-        freq = F.l1_loss(recon_f, target_f, reduction="mean")
-        return recon_loss + 0.1 * freq + self.beta * kl_loss
+        recon = F.l1_loss(recon_x, x)
+        kl = (-0.5 * torch.sum(1 + logvar - mean.pow(2) - logvar.exp(), dim=1)).mean()
+        freq = F.l1_loss(recon_x[:, :, 1:] - recon_x[:, :, :-1],
+                        x[:, :, 1:] - x[:, :, :-1])
+        self.loss_terms = (recon.item(), freq.item(), kl.item())
+        return recon + 0.1 * freq + self.beta * kl
     
     def train(self, epoch, model, optimizer, data_loader, log_interval=100):
         model.train()
         train_loss = 0
+        n_batches = 0
+        terms = torch.zeros(3)  # recon, freq, kl
+
         for batch_idx, (data, *_) in enumerate(data_loader):
             data = data.to(self.device)
             optimizer.zero_grad()
             recon_batch, mu, logvar = model(data)
-
-            loss = self.loss_function(recon_batch, data, mu, logvar)
-        
+            loss = self.loss_function(data, recon_batch, mu, logvar)  # x first, then recon_x
             loss.backward()
-            train_loss += loss.item()
             optimizer.step()
-        
-        print('====> Epoch: {} Average loss: {:.4f}'.format(epoch, train_loss))
 
-        return train_loss 
+            train_loss += loss.item()
+            terms += torch.tensor(self.loss_terms)
+            n_batches += 1
+
+        avg_loss = train_loss / n_batches
+        avg_terms = terms / n_batches
+        print(f'====> Epoch: {epoch} Average loss: {avg_loss:.4f} | '
+            f'recon: {avg_terms[0]:.4f}  freq: {avg_terms[1]:.4f}  KL: {avg_terms[2]:.2f}')
+        return avg_loss
     
     def test(self, epoch, model, data_loader):
         model.eval()
