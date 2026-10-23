@@ -2,12 +2,11 @@
 
 Train a convolutional variational autoencoder (VAE) on two-bar techno drum loops. The model learns a latent space of spectrograms and can reconstruct or sample new loops as audio.
 
-This is research / experiment code, not a packaged library. The training entry point is `main.py`.
 
 ## What the code does
 
 1. Collects two-bar `.wav` drum loops (about 3.43 s, i.e. two bars at 140 BPM) from local sample-pack folders.
-2. Converts each clip to a magnitude spectrogram (STFT in dB), caches the tensor, and scales values into `[0, 1]`.
+2. Converts each audio file to a magnitude spectrogram (STFT in dB), caches the tensor, and scales values into `[0, 1]`.
 3. Trains `StridedConvVAE`: a 2D convolutional encoder, a compact latent vector, and a transposed-convolution decoder.
 4. Saves weights, logs hyperparameters and epoch losses, plots the training curve, and writes a few generated WAVs by inverting spectrograms with Griffin–Lim.
 
