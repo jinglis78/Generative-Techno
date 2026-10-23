@@ -1,0 +1,28 @@
+
+# Python
+__pycache__/
+
+# Model checkpoints and weights
+*.pth
+*.txt
+
+# Generated audio and spectrograms
+TinySOL/
+DPTE/
+DPTE Drum Loops - 140 BPM - converted/
+
+# Dataset directories — adjust to your actual names
+data/
+datasets/
+
+# Generated files — uncomment if appropriate
+# *.wav
+# *.mp3
+# *.flac
+# *.npy
+# *.npz
+
+# Editor and OS files
+.DS_Store
+.vscode/
+.idea/
