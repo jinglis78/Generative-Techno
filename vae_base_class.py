@@ -9,7 +9,7 @@ class VAEBaseClass:
         self.data_processor = data_processor
         self.optimizer = optimizer
         self.device = device
-        self.beta = 0
+        self.beta = 0.001
 
     def loss_function(self, x, recon_x, mean, logvar):
         recon = F.l1_loss(recon_x, x)
@@ -17,7 +17,7 @@ class VAEBaseClass:
         freq = F.l1_loss(recon_x[:, :, 1:] - recon_x[:, :, :-1],
                         x[:, :, 1:] - x[:, :, :-1])
         self.loss_terms = (recon.item(), freq.item(), kl.item())
-        return recon + 0.1 * freq + self.beta * kl
+        return recon + 100 * freq + self.beta * kl
     
     def train(self, epoch, model, optimizer, data_loader, log_interval=100):
         model.train()
@@ -41,7 +41,7 @@ class VAEBaseClass:
         avg_terms = terms / n_batches
         print(f'====> Epoch: {epoch} Average loss: {avg_loss:.4f} | '
             f'recon: {avg_terms[0]:.4f}  freq: {avg_terms[1]:.4f}  KL: {avg_terms[2]:.2f}')
-        return avg_loss
+        return avg_loss, avg_terms
     
     def test(self, epoch, model, data_loader):
         model.eval()
@@ -58,11 +58,13 @@ class VAEBaseClass:
 
     def train_test_sample(self, model, optimizer, train_loader, test_loader, epochs, num_samples, latent_dim):
         losses = []
+        loss_terms = []
         for epoch in range(1, epochs + 1):
-            loss = self.train(epoch, model, optimizer, train_loader)
+            loss, loss_term = self.train(epoch, model, optimizer, train_loader)
             losses.append(loss)
+            loss_terms.append(loss_term)
             self.test(epoch, model, test_loader)
 
-        return losses
+        return losses, loss_terms
     
     

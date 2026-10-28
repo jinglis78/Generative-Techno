@@ -64,7 +64,7 @@ class GenerativeVAE(nn.Module):
     def decode(self, latent_point):
         decoded = self.decoder(latent_point)
         noise = torch.randn_like(decoded)
-        decoded = (decoded + 0.7 * self.sigma * noise).clamp(0, 1)
+        decoded = (decoded + 200 * self.sigma * noise).clamp(0, 1)
         return decoded 
 
     # input image -> reconstructed image

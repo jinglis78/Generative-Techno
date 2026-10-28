@@ -23,7 +23,7 @@ import inspect
 from datetime import datetime
 
 def log_experiment(
-    model_class,
+    loss_terms,
     loss_function,
     batch_size,
     latent_dim,
@@ -61,9 +61,9 @@ def log_experiment(
             f.write("Could not retrieve source automatically.\n")
 
         f.write("\t EPOCH LOSSES\n")
-        f.write("\t ------------\n \t")
+        f.write("\t ------------\n ")
         for epoch, loss in enumerate(losses, start=1):
-            f.write(f"\t Epoch {epoch}: {loss} \n")
+            f.write(f"\t Epoch {epoch}: {loss} | 'recon: {loss_terms[epoch-1][0]:.4f}  freq: {loss_terms[epoch-1][1]:.4f}  KL: {loss_terms[epoch-1][2]:.2f} \n")
 
         f.write(f"{separator}\n\n")
 
@@ -258,7 +258,7 @@ print ("input_shape: ", input_shape)
 print("Using device:", device)
 
 batch_size = 16
-latent_dim = 8
+latent_dim = 64
 kernel_sizes=(5, 5, 5, 5, 5, 5)
 strides=((2,2), (2,2), (2,2), (1,1), (1,1),(1,1))
 channels=(16, 32, 64, 128, 256, 256)
@@ -281,8 +281,14 @@ trainer = VAEBaseClass(model=model, optimizer=optimizer, data_processor=data, de
 
 loss_function = trainer.loss_function
 
-losses = trainer.train_test_sample(model, optimizer, data_loader, data_loader, epochs=20, num_samples=0, latent_dim=latent_dim)
+ckpt = torch.load("vae_model_DPTE_vae3.pth", map_location=device)
+state = ckpt["model_state_dict"] if isinstance(ckpt, dict) and "model_state_dict" in ckpt else ckpt
+model.load_state_dict(state)
+
+losses, loss_terms = trainer.train_test_sample(model, optimizer, data_loader, data_loader, epochs=20, num_samples=0, latent_dim=latent_dim)
 torch.save(model.state_dict(), "vae_model_DPTE_vae3.pth")
+
+print(losses, loss_terms)
 
 extra_params={
         "input_shape": input_shape,
@@ -297,7 +303,7 @@ extra_params={
     }
 
 log_experiment(
-    model_class=StridedConvVAE,
+    loss_terms = loss_terms,
     loss_function = loss_function,
     batch_size=batch_size,
     latent_dim=latent_dim,

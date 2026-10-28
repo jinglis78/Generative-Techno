@@ -6,9 +6,11 @@ __pycache__/
 *.pth
 *.pt
 *.txt
+*.wav
 
 # Generated audio and spectrograms
 TinySOL/
+outputs/
 DPTE/
 DPTE Drum Loops - 140 BPM - converted/
 
